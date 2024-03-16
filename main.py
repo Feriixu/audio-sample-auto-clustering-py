@@ -15,7 +15,7 @@ import hashlib
 import json
 
 # Path to your folder containing audio files
-folder_path = '/home/elias/Music/samples'
+folder_path = '/home/elias/Downloads/SoundPack'
 
 # Define cache directories
 samples_cache_dir = os.path.expanduser('~/.cache/audio_clustering/samples/')
@@ -31,11 +31,22 @@ file_paths = []  # Store full paths for playback
 # Traverse the directory tree
 for root, dirs, files in os.walk(folder_path):
     for file in files:
-        if file.endswith('.mp3') or file.endswith('.wav'):  # Add other formats as needed
+        if file.endswith('.mp3') or file.endswith('.wav') or file.endswith(".ogg"):  # Add other formats as needed
             file_path = os.path.join(root, file)
             hash_object = hashlib.sha1(file_path.encode())
             hex_dig = hash_object.hexdigest()
             cached_features_path = os.path.join(features_cache_dir, f"{hex_dig}.json")
+
+
+            hash_object = hashlib.sha1(file_path.encode())
+            hex_dig = hash_object.hexdigest()
+            cached_file_path = os.path.join(samples_cache_dir, f"{hex_dig}.wav")
+            # Check if a cached version already exists
+            if not os.path.exists(cached_file_path):
+                print("Caching file: ", file_path)
+                # If not, convert and cache the file
+                audio = AudioSegment.from_file(file_path)
+                audio.export(cached_file_path, format="wav")
 
             if os.path.exists(cached_features_path):
                 # Load cached features
@@ -66,7 +77,7 @@ if features:
     scaler = StandardScaler()
     scaled_features = scaler.fit_transform(features)
 
-    n_clusters = 15  # You may need to adjust this based on your specific needs
+    n_clusters = 8  # You may need to adjust this based on your specific needs
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     labels = kmeans.fit_predict(scaled_features)
 
